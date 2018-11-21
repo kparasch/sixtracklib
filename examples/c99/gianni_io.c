@@ -21,9 +21,18 @@ int main( int argc, char* argv[] )
 
   st_Particles_print_out( particles );
 
+  // Load elements
+  st_Buffer* eb = st_Buffer_new_from_file( "elements.buffer" );
+  SIXTRL_ASSERT( eb != SIXTRL_NULLPTR );
 
+  // Track
+  //st_Track_all_particles_until_turn( particles, eb, 3 );
+  st_Track_all_particles_increment_at_turn(
+      particles, 0u );
+  st_Track_all_particles_increment_at_turn(
+      particles, 0u );
 
-
+  st_Particles_print_out( particles );
 
   st_Buffer* outp_buffer = st_Buffer_new( 0u );
   st_Particles_add_copy( outp_buffer, particles );
