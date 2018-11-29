@@ -132,7 +132,7 @@ class BeamBeam6D(CObject):
         if data is None:
             import pysixtrack
             data = pysixtrack.BB6Ddata.BB6D_init(
-                **{kk: kwargs[kk] for kk in kwargs.keys() if kk != 'cbuffer'}).tobuffer()
+                **{kk: kwargs[kk] for kk in kwargs.keys() if kk != 'cbuffer'}, sixtrack_slicing = False).tobuffer()
             CObject.__init__(self, size=len(data), data=data, **kwargs)
         else:
             CObject.__init__(self, **kwargs)

@@ -19,6 +19,16 @@ Dpy_rad = 3e-6
 Dsigma_m = 2e-3
 Ddelta = 0.
 
+
+Dx_m = 0.
+Dpx_rad = 2.901886835826216e-07
+Dy_m = 0.
+Dpy_rad = 7.82792882455503e-06
+Dsigma_m = 0.
+Ddelta = 0.
+
+
+
 part = pysixtrack.Particles(**partCO)
 
 
