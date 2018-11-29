@@ -14,6 +14,10 @@ import numpy as np
 six = sixtracktools.SixInput('.')
 p0c_eV = six.initialconditions[-3]*1e6
 
+# I want to use sixtrack-like slice(less accurate)
+pysixtrack.BeamBeam6D._sixtrack_slicing = True
+
+
 # Build pysixtrack line
 line, rest, iconv = six.expand_struct(convert=pysixtrack.element_types)
 
