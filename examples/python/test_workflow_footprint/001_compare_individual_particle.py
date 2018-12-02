@@ -4,7 +4,7 @@ import numpy as np
 import helpers as hp
 import matplotlib.pyplot as plt
 
-n_turns = 100
+n_turns = 10
 
 with open('line.pkl', 'rb') as fid:
     line = pickle.load(fid)
