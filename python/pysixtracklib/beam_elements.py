@@ -154,7 +154,7 @@ class BeamBeam6D(CObject):
     Sigmas_0_star = CField(2, Sigmas)
     min_sigma_diff = CField(3, 'real', default=0.0, alignment=8)
     threshold_singular = CField(4, 'real', default=0.0, alignment=8)
-    N_slices = CField(5, 'int64', default=0, alignment=8)
+    N_slices = CField(5, 'int64', const=True, default=0, alignment=8)
 
     delta_x = CField(6, 'real', default=0.0, alignment=8)
     delta_y = CField(7, 'real', default=0.0, alignment=8)
@@ -186,9 +186,41 @@ class BeamBeam6D(CObject):
 
         import pysixtrack
         data = pysixtrack.BB6Ddata.BB6D_init(
-            **{kk: kwargs[kk] for kk in kwargs.keys() if kk != 'cbuffer'}).tobuffer()
+            **{kk: kwargs[kk] for kk in kwargs.keys() if kk != 'cbuffer'})
         
-        
+        self.q_part = data.q_part
+
+        for attr in "sphi cphi tphi salpha calpha".split():
+            setattr(self.parboost, attr, getattr(data.parboost, attr))
+
+        for attr in "Sig_11_0 Sig_12_0 Sig_13_0 Sig_14_0 Sig_22_0 Sig_23_0 Sig_24_0 Sig_33_0 Sig_34_0 Sig_44_0".split(): 
+            setattr(self.Sigmas_0_star, attr, getattr(data.Sigmas_0_star, attr))
+
+        self.min_sigma_diff = data.min_sigma_diff
+        self.threshold_singular = data.threshold_singular
+        self.N_slices = data.N_slices
+
+        self.delta_x = data.delta_x
+        self.delta_y = data.delta_y
+        self.x_CO = data.x_CO
+        self.px_CO = data.px_CO
+        self.y_CO = data.y_CO
+        self.py_CO = data.py_CO
+        self.sigma_CO = data.sigma_CO
+        self.delta_CO = data.delta_CO
+        self.Dx_sub = data.Dx_sub
+        self.Dpx_sub = data.Dpx_sub
+        self.Dy_sub = data.Dy_sub
+        self.Dpy_sub = data.Dpy_sub
+        self.Dsigma_sub = data.Dsigma_sub
+        self.Ddelta_sub = data.Ddelta_sub
+        self.enabled = data.enabled
+
+        self.N_part_per_slice[:, self.N_slices] = data.N_part_per_slice[:, self.N_slices]
+        self.x_slices_star[:, self.N_slices] = data.x_slices_star[:, self.N_slices]
+        self.y_slices_star[:, self.N_slices] = data.y_slices_star[:, self.N_slices]
+        self.sigma_slices_star[:, self.N_slices] = data.sigma_slices_star[:, self.N_slices]
+
 
 
 
