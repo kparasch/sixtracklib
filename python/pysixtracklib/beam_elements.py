@@ -122,20 +122,77 @@ class BeamBeam4D(CObject):
             CObject.__init__(self, **kwargs)
 
 
+##### BB6D interanl objects ######
+class ParBoost(CObject):
+    
+    sphi = CField(0, 'real', default=0.0, alignment=8)
+    cphi = CField(1, 'real', default=0.0, alignment=8)
+    tphi = CField(2, 'real', default=0.0, alignment=8)
+    salpha = CField(3, 'real', default=0.0, alignment=8)
+    calpha  = CField(4, 'real',  default=0.0, alignment=8)
+
+class Sigmas(CObject):
+
+    Sig_11_0 = CField(0, 'real', default=0.0, alignment=8)
+    Sig_12_0 = CField(1, 'real', default=0.0, alignment=8)
+    Sig_13_0 = CField(2, 'real', default=0.0, alignment=8)
+    Sig_14_0 = CField(3, 'real', default=0.0, alignment=8)
+    Sig_22_0 = CField(4, 'real', default=0.0, alignment=8)
+    Sig_23_0 = CField(5, 'real', default=0.0, alignment=8)
+    Sig_24_0 = CField(6, 'real', default=0.0, alignment=8)
+    Sig_33_0 = CField(7, 'real', default=0.0, alignment=8)
+    Sig_34_0 = CField(8, 'real', default=0.0, alignment=8)
+    Sig_44_0 = CField(9, 'real', default=0.0, alignment=8)
+
+##### End BB6D internal obj ######
+
 class BeamBeam6D(CObject):
     _typeid = 9
-    size = CField(0, 'uint64', const=True, default=0)
-    data = CField(1, 'float64',   default=0.0,
-                  length='size', pointer=True)
+
+    q_part = CField(0, 'real', default=0.0, alignment=8)
+    parboost = CField(1, ParBoost)
+    Sigmas_0_star = CField(2, Sigmas)
+    min_sigma_diff = CField(3, 'real', default=0.0, alignment=8)
+    threshold_singular = CField(4, 'real', default=0.0, alignment=8)
+    N_slices = CField(5, 'int64', default=0, alignment=8)
+
+    delta_x = CField(6, 'real', default=0.0, alignment=8)
+    delta_y = CField(7, 'real', default=0.0, alignment=8)
+    x_CO = CField(8, 'real', default=0.0, alignment=8)
+    px_CO = CField(9, 'real', default=0.0, alignment=8)
+    y_CO = CField(10, 'real', default=0.0, alignment=8)
+    py_CO = CField(11, 'real', default=0.0, alignment=8)
+    sigma_CO = CField(12, 'real', default=0.0, alignment=8)
+    delta_CO = CField(13, 'real', default=0.0, alignment=8)
+    Dx_sub = CField(14, 'real', default=0.0, alignment=8)
+    Dpx_sub = CField(15, 'real', default=0.0, alignment=8)
+    Dy_sub = CField(16, 'real', default=0.0, alignment=8)
+    Dpy_sub = CField(17, 'real', default=0.0, alignment=8)
+    Dsigma_sub = CField(18, 'real', default=0.0, alignment=8)
+    Ddelta_sub = CField(19, 'real', default=0.0, alignment=8)
+    enabled = CField(20, 'int64', default=0, alignment=8)
+
+    N_part_per_slice = CField(21, 'real', default=0.0,
+                 length='N_slices', pointer=True, alignment=8)
+    x_slices_star = CField(22, 'real', default=0.0,
+                 length='N_slices', pointer=True, alignment=8)
+    y_slices_star = CField(23, 'real', default=0.0,
+                 length='N_slices', pointer=True, alignment=8)
+    sigma_slices_star = CField(24, 'real', default=0.0,
+                 length='N_slices', pointer=True, alignment=8)
+
 
     def __init__(self, data=None, **kwargs):
-        if data is None:
-            import pysixtrack
-            data = pysixtrack.BB6Ddata.BB6D_init(
-                **{kk: kwargs[kk] for kk in kwargs.keys() if kk != 'cbuffer'}).tobuffer()
-            CObject.__init__(self, size=len(data), data=data, **kwargs)
-        else:
-            CObject.__init__(self, **kwargs)
+
+        pass
+        
+        # if data is None:
+        #     import pysixtrack
+        #     data = pysixtrack.BB6Ddata.BB6D_init(
+        #         **{kk: kwargs[kk] for kk in kwargs.keys() if kk != 'cbuffer'}).tobuffer()
+        #     CObject.__init__(self, size=len(data), data=data, **kwargs)
+        # else:
+        #     CObject.__init__(self, **kwargs)
 
 
 class Elements(object):
