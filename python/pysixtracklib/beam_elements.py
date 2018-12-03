@@ -124,6 +124,7 @@ class BeamBeam4D(CObject):
 
 ##### BB6D interanl objects ######
 class ParBoost(CObject):
+    _typeid = 903
     
     sphi = CField(0, 'real', default=0.0, alignment=8)
     cphi = CField(1, 'real', default=0.0, alignment=8)
@@ -132,6 +133,7 @@ class ParBoost(CObject):
     calpha  = CField(4, 'real',  default=0.0, alignment=8)
 
 class Sigmas(CObject):
+    _typeid = 902
 
     Sig_11_0 = CField(0, 'real', default=0.0, alignment=8)
     Sig_12_0 = CField(1, 'real', default=0.0, alignment=8)
@@ -154,7 +156,7 @@ class BeamBeam6D(CObject):
     Sigmas_0_star = CField(2, Sigmas)
     min_sigma_diff = CField(3, 'real', default=0.0, alignment=8)
     threshold_singular = CField(4, 'real', default=0.0, alignment=8)
-    N_slices = CField(5, 'int64', const=True, default=0, alignment=8)
+    N_slices = CField(5, 'int64', const=True, alignment=8)
 
     delta_x = CField(6, 'real', default=0.0, alignment=8)
     delta_y = CField(7, 'real', default=0.0, alignment=8)
@@ -187,6 +189,8 @@ class BeamBeam6D(CObject):
         import pysixtrack
         data = pysixtrack.BB6Ddata.BB6D_init(
             **{kk: kwargs[kk] for kk in kwargs.keys() if kk != 'cbuffer'})
+
+        CObject.__init__(self, N_slices=data.N_slices)
         
         self.q_part = data.q_part
 
@@ -216,10 +220,10 @@ class BeamBeam6D(CObject):
         self.Ddelta_sub = data.Ddelta_sub
         self.enabled = data.enabled
 
-        self.N_part_per_slice[:, self.N_slices] = data.N_part_per_slice[:, self.N_slices]
-        self.x_slices_star[:, self.N_slices] = data.x_slices_star[:, self.N_slices]
-        self.y_slices_star[:, self.N_slices] = data.y_slices_star[:, self.N_slices]
-        self.sigma_slices_star[:, self.N_slices] = data.sigma_slices_star[:, self.N_slices]
+        self.N_part_per_slice[:self.N_slices] = data.N_part_per_slice[:self.N_slices]
+        self.x_slices_star[:self.N_slices] = data.x_slices_star[:self.N_slices]
+        self.y_slices_star[:self.N_slices] = data.y_slices_star[:self.N_slices]
+        self.sigma_slices_star[:self.N_slices] = data.sigma_slices_star[:self.N_slices]
 
 
 
