@@ -22,11 +22,8 @@ line = pysixtrack.Line.fromline(pbline)
 
 # Disable BB elements
 ind_BB4D, namelistBB4D, listBB4D = pyblep.tools.get_elems_of_type(line, 'BeamBeam4D')
-for bb in listBB4D:
-    bb.enabled = False
 ind_BB6D, namelistBB6D, listBB6D = pyblep.tools.get_elems_of_type(line, 'BeamBeam6D')
-for bb in listBB6D:
-    bb.enabled = False
+line.enable_beambeam()
 
 # Load sixtrack tracking data
 sixdump_all = sixtracktools.SixDump101('res/dump3.dat')
@@ -45,21 +42,6 @@ print('Closed orbit at start machine:')
 print('x px y py sigma delta:', guess)
 
 
-# Check that closed orbit is closed
-pstart = closed_orbit[0].copy()
-pstart_st = pysixtrack.Particles(**sixdump_CO[0].get_minimal_beam())
-
-with open('particle_on_CO.pkl', 'wb') as fid:
-    pickle.dump(sixdump_CO[0].get_minimal_beam(), fid)
-
-print('STsigma, Sigma, Stdelta, delta, Stpx, px')
-for iturn in range(10):
-    line.track(pstart)
-    line.track(pstart_st)
-    print('%e, %e, %e, %e, %e, %e' % (pstart_st.sigma, pstart.sigma,
-                                      pstart_st.delta, pstart.delta, pstart_st.px, pstart.px))
-
-
 
 
 import matplotlib.pyplot as plt
@@ -75,11 +57,8 @@ plt.figure(1)
 plt.plot(sixdump_CO.s, sixdump_CO.x)
 
 
-# Re-enable beam-beam
-for bb in listBB4D:
-    bb.enabled = True
-for bb in listBB6D:
-    bb.enabled = True
+line.disable_beambeam()
+
 
 # Add closed orbit to separation for BB4D (as assumed in sixtrack)
 for bb, ibb in zip(listBB4D, ind_BB4D):
@@ -219,3 +198,19 @@ for ii in range(1, len(iconv)):
     if error:
         print('Error detected')
         break
+# Check that closed orbit is closed
+pstart = closed_orbit[0].copy()
+pstart_st = pysixtrack.Particles(**sixdump_CO[0].get_minimal_beam())
+
+with open('particle_on_CO.pkl', 'wb') as fid:
+    pickle.dump(sixdump_CO[0].get_minimal_beam(), fid)
+
+print('STsigma, Sigma, Stdelta, delta, Stpx, px')
+for iturn in range(10):
+    line.track(pstart)
+    line.track(pstart_st)
+    print('%e, %e, %e, %e, %e, %e' % (pstart_st.sigma, pstart.sigma,
+                                      pstart_st.delta, pstart.delta, pstart_st.px, pstart.px))
+
+
+
