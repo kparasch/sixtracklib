@@ -37,7 +37,9 @@ sixdump_CO = sixdump_all[::2][:Nele_st]
 # Find closed orbit
 guess = [getattr(sixdump_CO, att)[0]
          for att in 'x px y py sigma delta'.split()]
-closed_orbit = line.find_closed_orbit(guess=guess, method='get_guess', p0c=p0c_eV)
+start_closed_orbit = line.find_closed_orbit(guess=guess, method='get_guess', p0c=p0c_eV)
+
+closed_orbit = line.track_elem_by_elem(start_closed_orbit)
 
 print('Closed orbit at start machine:')
 print('x px y py sigma delta:', guess)
