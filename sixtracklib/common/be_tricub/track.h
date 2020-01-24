@@ -123,12 +123,12 @@ SIXTRL_INLINE NS(track_status_t) NS(Track_particle_tricub)(
     SIXTRL_ASSERT( iy >= 0 && iy <= NS(TriCubData_ny)( tricub_data ) - 2 ); 
     SIXTRL_ASSERT( iz >= 0 && iz <= NS(TriCubData_nz)( tricub_data ) - 2 );
     // =========================================================================
-    
-    real_t b_vector[64];
-    NS(tricub_construct_b_vector)(tricub_data, ix, iy, iz, b_vector);
+
+//    real_t b_vector[64];
+//    NS(tricub_construct_b_vector)(tricub_data, ix, iy, iz, b_vector);
 
     real_t coefs[64];
-    NS(tricub_construct_coefs)(b_vector, coefs);
+    NS(tricub_construct_coefs)(tricub_data, ix, iy, iz, coefs);
 
     real_t x_power[4];
     real_t y_power[4];
@@ -233,7 +233,7 @@ SIXTRL_INLINE void NS(tricub_construct_b_vector)(
     //NS(be_tricub_int_t) const lookup_table_size = NS(TriCubData_table_size)( tricub_data );
     NS(be_tricub_int_t) const nx = NS(TriCubData_nx)( tricub_data );
     NS(be_tricub_int_t) const ny = NS(TriCubData_ny)( tricub_data );
-    NS(be_tricub_int_t) const nz = NS(TriCubData_nz)( tricub_data );
+    // NS(be_tricub_int_t) const nz = NS(TriCubData_nz)( tricub_data );
 
     NS(be_tricub_real_t) const dx = NS(TriCubData_dx)( tricub_data );
     NS(be_tricub_real_t) const dy = NS(TriCubData_dy)( tricub_data );
@@ -244,14 +244,14 @@ SIXTRL_INLINE void NS(tricub_construct_b_vector)(
                                           (dx * dy) * dz };
     for(int l = 0; l < 8; l++)
     {
-        b_vector[8 * l    ] = lookup_table_begin[ (ix  ) + nx * ( (iy  ) + ny * ( (iz  ) + nz * l) ) ] * scale[l];
-        b_vector[8 * l + 1] = lookup_table_begin[ (ix+1) + nx * ( (iy  ) + ny * ( (iz  ) + nz * l) ) ] * scale[l];
-        b_vector[8 * l + 2] = lookup_table_begin[ (ix  ) + nx * ( (iy+1) + ny * ( (iz  ) + nz * l) ) ] * scale[l];
-        b_vector[8 * l + 3] = lookup_table_begin[ (ix+1) + nx * ( (iy+1) + ny * ( (iz  ) + nz * l) ) ] * scale[l];
-        b_vector[8 * l + 4] = lookup_table_begin[ (ix  ) + nx * ( (iy  ) + ny * ( (iz+1) + nz * l) ) ] * scale[l];
-        b_vector[8 * l + 5] = lookup_table_begin[ (ix+1) + nx * ( (iy  ) + ny * ( (iz+1) + nz * l) ) ] * scale[l];
-        b_vector[8 * l + 6] = lookup_table_begin[ (ix  ) + nx * ( (iy+1) + ny * ( (iz+1) + nz * l) ) ] * scale[l];
-        b_vector[8 * l + 7] = lookup_table_begin[ (ix+1) + nx * ( (iy+1) + ny * ( (iz+1) + nz * l) ) ] * scale[l];
+        b_vector[8 * l    ] = lookup_table_begin[ l + 8 * ( (ix  ) + nx * ( (iy  ) + ny * (iz  ) ) ) ] * scale[l];
+        b_vector[8 * l + 1] = lookup_table_begin[ l + 8 * ( (ix+1) + nx * ( (iy  ) + ny * (iz  ) ) ) ] * scale[l];
+        b_vector[8 * l + 2] = lookup_table_begin[ l + 8 * ( (ix  ) + nx * ( (iy+1) + ny * (iz  ) ) ) ] * scale[l];
+        b_vector[8 * l + 3] = lookup_table_begin[ l + 8 * ( (ix+1) + nx * ( (iy+1) + ny * (iz  ) ) ) ] * scale[l];
+        b_vector[8 * l + 4] = lookup_table_begin[ l + 8 * ( (ix  ) + nx * ( (iy  ) + ny * (iz+1) ) ) ] * scale[l];
+        b_vector[8 * l + 5] = lookup_table_begin[ l + 8 * ( (ix+1) + nx * ( (iy  ) + ny * (iz+1) ) ) ] * scale[l];
+        b_vector[8 * l + 6] = lookup_table_begin[ l + 8 * ( (ix  ) + nx * ( (iy+1) + ny * (iz+1) ) ) ] * scale[l];
+        b_vector[8 * l + 7] = lookup_table_begin[ l + 8 * ( (ix+1) + nx * ( (iy+1) + ny * (iz+1) ) ) ] * scale[l];
     }
 
     return;
