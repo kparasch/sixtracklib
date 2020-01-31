@@ -20,6 +20,17 @@ SIXTRL_STATIC SIXTRL_FN NS(track_status_t) NS(Track_particle_tricub)(
     NS(particle_num_elements_t) const particle_index,
     SIXTRL_BE_ARGPTR_DEC const struct NS(TriCub) *const SIXTRL_RESTRICT tricub );
 
+SIXTRL_STATIC SIXTRL_FN void NS(tricub_construct_b1_vector)(
+    SIXTRL_BUFFER_DATAPTR_DEC const NS(TriCubData) *const SIXTRL_RESTRICT tricub_data,
+    NS(be_tricub_int_t) const ix, NS(be_tricub_int_t) const iy, NS(be_tricub_int_t) const iz, 
+    SIXTRL_ARGPTR_DEC NS(be_tricub_real_t)* SIXTRL_RESTRICT b_vector);
+
+SIXTRL_STATIC SIXTRL_FN void NS(tricub_construct_bn_vector)(
+    SIXTRL_BUFFER_DATAPTR_DEC const NS(TriCubData) *const SIXTRL_RESTRICT tricub_data,
+    NS(be_tricub_int_t) const ix, NS(be_tricub_int_t) const iy, NS(be_tricub_int_t) const iz, 
+    SIXTRL_ARGPTR_DEC NS(be_tricub_real_t)* SIXTRL_RESTRICT b_vector,
+    NS(be_tricub_int_t) const l);//ow, NS(be_tricub_int_t) const high);
+
 SIXTRL_STATIC SIXTRL_FN void NS(tricub_construct_b_vector)(
     SIXTRL_BUFFER_DATAPTR_DEC const NS(TriCubData) *const SIXTRL_RESTRICT tricub_data,
     NS(be_tricub_int_t) const ix, NS(be_tricub_int_t) const iy, NS(be_tricub_int_t) const iz, 
@@ -72,9 +83,9 @@ SIXTRL_INLINE NS(track_status_t) NS(Track_particle_tricub)(
     // method = 2 -> Exact derivatives
     // method = 3 -> Exact derivatives and mirrored in X, Y
                  
-    real_t const inv_dx = 1./( NS(TriCubData_dx)( tricub_data ) );
-    real_t const inv_dy = 1./( NS(TriCubData_dy)( tricub_data ) );
-    real_t const inv_dz = 1./( NS(TriCubData_dz)( tricub_data ) );
+    // real_t const inv_dx = 1./( NS(TriCubData_dx)( tricub_data ) );
+    // real_t const inv_dy = 1./( NS(TriCubData_dy)( tricub_data ) );
+    // real_t const inv_dz = 1./( NS(TriCubData_dz)( tricub_data ) );
 
     real_t const x0 = NS(TriCubData_x0)( tricub_data );
     real_t const y0 = NS(TriCubData_y0)( tricub_data );
@@ -88,9 +99,9 @@ SIXTRL_INLINE NS(track_status_t) NS(Track_particle_tricub)(
     real_t const y = NS(Particles_get_y_value)( particles, ii );
     real_t const z = zeta / ( beta0 * rvv);
 
-    real_t const fx = ( (x - x_shift) - x0 ) * inv_dx;
-    real_t const fy = ( (y - y_shift) - y0 ) * inv_dy;
-    real_t const fz = ( (z - z_shift) - z0 ) * inv_dz;
+    real_t const fx = ( (x - x_shift ) - x0 )/( NS(TriCubData_dx)( tricub_data ) );
+    real_t const fy = ( (y - y_shift ) - y0 )/( NS(TriCubData_dy)( tricub_data ) );
+    real_t const fz = ( (z - z_shift ) - z0 )/( NS(TriCubData_dz)( tricub_data ) );
 
     real_t const sign_x = ( NS(TriCubData_mirror_x)( tricub_data ) == 1 && fx < 0.0 ) ? -1. : 1.;
     real_t const sign_y = ( NS(TriCubData_mirror_y)( tricub_data ) == 1 && fy < 0.0 ) ? -1. : 1.;
@@ -124,87 +135,70 @@ SIXTRL_INLINE NS(track_status_t) NS(Track_particle_tricub)(
     SIXTRL_ASSERT( iz >= 0 && iz <= NS(TriCubData_nz)( tricub_data ) - 2 );
     // =========================================================================
     
-    real_t b_vector[64];
-    NS(tricub_construct_b_vector)(tricub_data, ix, iy, iz, b_vector);
+    real_t kicks[3] = {0.};
 
-    real_t coefs[64];
-    NS(tricub_construct_coefs)(b_vector, coefs);
+    // kicks[0] = sign_x*(NS(TriCubData_dx)( tricub_data ) / length )*NS(TriCub_dipolar_kick_px)( tricub );
+    // kicks[1] = sign_y*(NS(TriCubData_dy)( tricub_data ) / length )*NS(TriCub_dipolar_kick_py)( tricub );
+    // kicks[2] = sign_z*(NS(TriCubData_dz)( tricub_data ) / length )*NS(TriCub_dipolar_kick_ptau)( tricub );
 
-    real_t x_power[4];
-    real_t y_power[4];
-    real_t z_power[4];
+    //real_t b_vector[64];
+    //NS(tricub_construct_bn_vector)(tricub_data, ix, iy, iz, b_vector, 0, 8);
+    //NS(tricub_unscaled_kicks_from_b)(b_vector, xn, yn, zn, kicks);
+    //NS(tricub_construct_bn_vector)(tricub_data, ix, iy, iz, b_vector, 2, 4);
+    //NS(tricub_unscaled_kicks_from_b2)(b_vector, xn, yn, zn, kicks);
+    //NS(tricub_construct_bn_vector)(tricub_data, ix, iy, iz, b_vector, 4, 6);
+    //NS(tricub_unscaled_kicks_from_b3)(b_vector, xn, yn, zn, kicks);
+    //NS(tricub_construct_bn_vector)(tricub_data, ix, iy, iz, b_vector, 6, 8);
+    //NS(tricub_unscaled_kicks_from_b4)(b_vector, xn, yn, zn, kicks);
     
-    x_power[0] = 1.;
-    y_power[0] = 1.;
-    z_power[0] = 1.;
+    real_t b_vector[8];
+    NS(tricub_construct_bn_vector)(tricub_data, ix, iy, iz, b_vector, 0);
+    NS(tricub_unscaled_kicks_from_b1)(b_vector, xn, yn, zn, kicks);
+    NS(tricub_construct_bn_vector)(tricub_data, ix, iy, iz, b_vector, 1);
+    NS(tricub_unscaled_kicks_from_b2)(b_vector, xn, yn, zn, kicks);
+    NS(tricub_construct_bn_vector)(tricub_data, ix, iy, iz, b_vector, 2);
+    NS(tricub_unscaled_kicks_from_b3)(b_vector, xn, yn, zn, kicks);
+    NS(tricub_construct_bn_vector)(tricub_data, ix, iy, iz, b_vector, 3);
+    NS(tricub_unscaled_kicks_from_b4)(b_vector, xn, yn, zn, kicks);
+    NS(tricub_construct_bn_vector)(tricub_data, ix, iy, iz, b_vector, 4);
+    NS(tricub_unscaled_kicks_from_b5)(b_vector, xn, yn, zn, kicks);
+    NS(tricub_construct_bn_vector)(tricub_data, ix, iy, iz, b_vector, 5);
+    NS(tricub_unscaled_kicks_from_b6)(b_vector, xn, yn, zn, kicks);
+    NS(tricub_construct_bn_vector)(tricub_data, ix, iy, iz, b_vector, 6);
+    NS(tricub_unscaled_kicks_from_b7)(b_vector, xn, yn, zn, kicks);
+    NS(tricub_construct_bn_vector)(tricub_data, ix, iy, iz, b_vector, 7);
+    NS(tricub_unscaled_kicks_from_b8)(b_vector, xn, yn, zn, kicks);
 
-    x_power[1] = xn;
-    y_power[1] = yn;
-    z_power[1] = zn;
+   // real_t b_vector[64];
+   // NS(tricub_construct_b_vector)(tricub_data, ix, iy, iz, b_vector);
 
-    x_power[2] = xn * xn;
-    y_power[2] = yn * yn;
-    z_power[2] = zn * zn;
+   // NS(tricub_unscaled_kicks_from_b)(b_vector, xn, yn, zn, kicks);
 
-    x_power[3] = x_power[2] * xn;
-    y_power[3] = y_power[2] * yn;
-    z_power[3] = z_power[2] * zn;
 
-    real_t kick_px = 0.;
-    for( int i = 1; i < 4; i++ )
-    {
-        for( int j = 0; j < 4; j++ )
-        {
-            for( int k = 0; k < 4; k++ )
-            {
-                kick_px += i * ( ( ( coefs[i + 4 * j + 16 * k] * x_power[i-1] ) 
-                            * y_power[j] ) * z_power[k] ) ;
-            }
-        }
-    }
-    kick_px *= ( length * inv_dx );
-    kick_px *= -sign_x;
-    kick_px -= NS(TriCub_dipolar_kick_px)( tricub );
+    // real_t const sign2_x = ( NS(TriCubData_mirror_x)( tricub_data ) == 1 && fx < 0.0 ) ? -1. : 1.;
+    // real_t const sign2_y = ( NS(TriCubData_mirror_y)( tricub_data ) == 1 && fy < 0.0 ) ? -1. : 1.;
+    // real_t const sign2_z = ( NS(TriCubData_mirror_z)( tricub_data ) == 1 && fz < 0.0 ) ? -1. : 1.;
 
-    real_t kick_py = 0.;
-    for( int i = 0; i < 4; i++ )
-    {
-        for( int j = 1; j < 4; j++ )
-        {
-            for( int k = 0; k < 4; k++ )
-            {
-                kick_py += j * ( ( ( coefs[i + 4 * j + 16 * k] * x_power[i] ) 
-                            * y_power[j-1] ) * z_power[k] ) ;
-            }
-        }
-    }
-    kick_py *= ( length * inv_dy );
-    kick_py *= -sign_y;
-    kick_py -= NS(TriCub_dipolar_kick_py)( tricub );
 
-    real_t kick_ptau = 0.;
-    for( int i = 0; i < 4; i++ )
-    {
-        for( int j = 0; j < 4; j++ )
-        {
-            for( int k = 1; k < 4; k++ )
-            {
-                kick_ptau += k * ( ( ( coefs[i + 4 * j + 16 * k] * x_power[i] ) 
-                            * y_power[j] ) * z_power[k-1] ) ;
-            }
-        }
-    }
-    kick_ptau *= ( length * inv_dz );
-    kick_ptau *= -sign_z;
-    kick_ptau -= NS(TriCub_dipolar_kick_ptau)( tricub );
+    kicks[0] *= ( length /( NS(TriCubData_dx)( tricub_data ) ) );
+    kicks[0] *= -sign_x;
+    kicks[0] -= NS(TriCub_dipolar_kick_px)( tricub );
+
+    kicks[1] *= ( length /( NS(TriCubData_dy)( tricub_data ) ) );
+    kicks[1] *= -sign_y;
+    kicks[1] -= NS(TriCub_dipolar_kick_py)( tricub );
+
+    kicks[2] *= ( length /( NS(TriCubData_dz)( tricub_data ) ) );
+    kicks[2] *= -sign_z;
+    kicks[2] -= NS(TriCub_dipolar_kick_ptau)( tricub );
 
     real_t const q = NS(Particles_get_q0_value)( particles, ii ) * 
                      NS(Particles_get_charge_ratio_value)( particles, ii );
     real_t const p0c = NS(Particles_get_p0c_value)( particles, ii );
-    real_t const energy_kick = q * ( p0c * kick_ptau );
+    real_t const energy_kick = q * ( p0c * kicks[2] );
 
-    NS(Particles_add_to_px_value)( particles, ii, kick_px );
-    NS(Particles_add_to_py_value)( particles, ii, kick_py );
+    NS(Particles_add_to_px_value)( particles, ii, kicks[0] );
+    NS(Particles_add_to_py_value)( particles, ii, kicks[1] );
     NS(Particles_add_to_energy_value)( particles, ii, energy_kick );
 
 
@@ -219,6 +213,90 @@ SIXTRL_INLINE NS(track_status_t) NS(Track_particle_tricub)(
     //( void )lookup_table_size;
 
     return SIXTRL_TRACK_SUCCESS;
+}
+
+SIXTRL_INLINE void NS(tricub_construct_b1_vector)(
+    SIXTRL_BUFFER_DATAPTR_DEC const NS(TriCubData) *const SIXTRL_RESTRICT tricub_data,
+    NS(be_tricub_int_t) const ix, NS(be_tricub_int_t) const iy, NS(be_tricub_int_t) const iz, 
+    SIXTRL_ARGPTR_DEC NS(be_tricub_real_t)* SIXTRL_RESTRICT b_vector)
+{
+
+    SIXTRL_BUFFER_DATAPTR_DEC NS(be_tricub_real_t) const* lookup_table_begin =
+        NS(TriCubData_const_table_begin)( tricub_data );
+
+    //NS(be_tricub_int_t) const lookup_table_size = NS(TriCubData_table_size)( tricub_data );
+    NS(be_tricub_int_t) const nx = NS(TriCubData_nx)( tricub_data );
+    NS(be_tricub_int_t) const ny = NS(TriCubData_ny)( tricub_data );
+    //NS(be_tricub_int_t) const nz = NS(TriCubData_nz)( tricub_data );
+
+    // NS(be_tricub_real_t) const dx = NS(TriCubData_dx)( tricub_data );
+    // NS(be_tricub_real_t) const dy = NS(TriCubData_dy)( tricub_data );
+    // NS(be_tricub_real_t) const dz = NS(TriCubData_dz)( tricub_data );
+
+    // NS(be_tricub_real_t) const scale[8] = { 1., dx, dy, dz, 
+    //                                       dx * dy, dx * dz, dy * dz, 
+    //                                       (dx * dy) * dz };
+    for(int l = 0; l < 4; l++)
+    {
+        b_vector[8 * l    ] = lookup_table_begin[ l + 8 * ( (ix  ) + nx * ( (iy  ) + ny * ( (iz  ) ) ) ) ] ;//* scale[l];
+        b_vector[8 * l + 1] = lookup_table_begin[ l + 8 * ( (ix+1) + nx * ( (iy  ) + ny * ( (iz  ) ) ) ) ] ;//* scale[l];
+        b_vector[8 * l + 2] = lookup_table_begin[ l + 8 * ( (ix  ) + nx * ( (iy+1) + ny * ( (iz  ) ) ) ) ] ;//* scale[l];
+        b_vector[8 * l + 3] = lookup_table_begin[ l + 8 * ( (ix+1) + nx * ( (iy+1) + ny * ( (iz  ) ) ) ) ] ;//* scale[l];
+        b_vector[8 * l + 4] = lookup_table_begin[ l + 8 * ( (ix  ) + nx * ( (iy  ) + ny * ( (iz+1) ) ) ) ] ;//* scale[l];
+        b_vector[8 * l + 5] = lookup_table_begin[ l + 8 * ( (ix+1) + nx * ( (iy  ) + ny * ( (iz+1) ) ) ) ] ;//* scale[l];
+        b_vector[8 * l + 6] = lookup_table_begin[ l + 8 * ( (ix  ) + nx * ( (iy+1) + ny * ( (iz+1) ) ) ) ] ;//* scale[l];
+        b_vector[8 * l + 7] = lookup_table_begin[ l + 8 * ( (ix+1) + nx * ( (iy+1) + ny * ( (iz+1) ) ) ) ] ;//* scale[l];
+    }
+
+    return;
+}
+
+SIXTRL_INLINE void NS(tricub_construct_bn_vector)(
+    SIXTRL_BUFFER_DATAPTR_DEC const NS(TriCubData) *const SIXTRL_RESTRICT tricub_data,
+    NS(be_tricub_int_t) const ix, NS(be_tricub_int_t) const iy, NS(be_tricub_int_t) const iz, 
+    SIXTRL_ARGPTR_DEC NS(be_tricub_real_t)* SIXTRL_RESTRICT b_vector, 
+    NS(be_tricub_int_t) const l)//ow, NS(be_tricub_int_t) const high)
+{
+
+    SIXTRL_BUFFER_DATAPTR_DEC NS(be_tricub_real_t) const* lookup_table_begin =
+        NS(TriCubData_const_table_begin)( tricub_data );
+
+    //NS(be_tricub_int_t) const lookup_table_size = NS(TriCubData_table_size)( tricub_data );
+    NS(be_tricub_int_t) const nx = NS(TriCubData_nx)( tricub_data );
+    NS(be_tricub_int_t) const ny = NS(TriCubData_ny)( tricub_data );
+//    NS(be_tricub_int_t) const nz = NS(TriCubData_nz)( tricub_data );
+
+    // NS(be_tricub_real_t) const dx = NS(TriCubData_dx)( tricub_data );
+    // NS(be_tricub_real_t) const dy = NS(TriCubData_dy)( tricub_data );
+    // NS(be_tricub_real_t) const dz = NS(TriCubData_dz)( tricub_data );
+
+    //NS(be_tricub_real_t) const scale[8] = { 1., dx, dy, dz, 
+    //                                      dx * dy, dx * dz, dy * dz, 
+    //                                      (dx * dy) * dz };
+
+    b_vector[ 0 ] = lookup_table_begin[ l + 8 * ( (ix  ) + nx * ( (iy  ) + ny * ( (iz  ) ) ) ) ] ;//* scale[l];
+    b_vector[ 1 ] = lookup_table_begin[ l + 8 * ( (ix+1) + nx * ( (iy  ) + ny * ( (iz  ) ) ) ) ] ;//* scale[l];
+    b_vector[ 2 ] = lookup_table_begin[ l + 8 * ( (ix  ) + nx * ( (iy+1) + ny * ( (iz  ) ) ) ) ] ;//* scale[l];
+    b_vector[ 3 ] = lookup_table_begin[ l + 8 * ( (ix+1) + nx * ( (iy+1) + ny * ( (iz  ) ) ) ) ] ;//* scale[l];
+    b_vector[ 4 ] = lookup_table_begin[ l + 8 * ( (ix  ) + nx * ( (iy  ) + ny * ( (iz+1) ) ) ) ] ;//* scale[l];
+    b_vector[ 5 ] = lookup_table_begin[ l + 8 * ( (ix+1) + nx * ( (iy  ) + ny * ( (iz+1) ) ) ) ] ;//* scale[l];
+    b_vector[ 6 ] = lookup_table_begin[ l + 8 * ( (ix  ) + nx * ( (iy+1) + ny * ( (iz+1) ) ) ) ] ;//* scale[l];
+    b_vector[ 7 ] = lookup_table_begin[ l + 8 * ( (ix+1) + nx * ( (iy+1) + ny * ( (iz+1) ) ) ) ] ;//* scale[l];
+
+    // NS(be_tricub_int_t) const off = 8*low;
+    // for(int l = low; l < high; l++)
+    // {
+    //     b_vector[ 0 + 8*l - off] = lookup_table_begin[ l + 8 * ( (ix  ) + nx * ( (iy  ) + ny * ( (iz  ) ) ) ) ] ;//* scale[l];
+    //     b_vector[ 1 + 8*l - off] = lookup_table_begin[ l + 8 * ( (ix+1) + nx * ( (iy  ) + ny * ( (iz  ) ) ) ) ] ;//* scale[l];
+    //     b_vector[ 2 + 8*l - off] = lookup_table_begin[ l + 8 * ( (ix  ) + nx * ( (iy+1) + ny * ( (iz  ) ) ) ) ] ;//* scale[l];
+    //     b_vector[ 3 + 8*l - off] = lookup_table_begin[ l + 8 * ( (ix+1) + nx * ( (iy+1) + ny * ( (iz  ) ) ) ) ] ;//* scale[l];
+    //     b_vector[ 4 + 8*l - off] = lookup_table_begin[ l + 8 * ( (ix  ) + nx * ( (iy  ) + ny * ( (iz+1) ) ) ) ] ;//* scale[l];
+    //     b_vector[ 5 + 8*l - off] = lookup_table_begin[ l + 8 * ( (ix+1) + nx * ( (iy  ) + ny * ( (iz+1) ) ) ) ] ;//* scale[l];
+    //     b_vector[ 6 + 8*l - off] = lookup_table_begin[ l + 8 * ( (ix  ) + nx * ( (iy+1) + ny * ( (iz+1) ) ) ) ] ;//* scale[l];
+    //     b_vector[ 7 + 8*l - off] = lookup_table_begin[ l + 8 * ( (ix+1) + nx * ( (iy+1) + ny * ( (iz+1) ) ) ) ] ;//* scale[l];
+    // }
+
+    return;
 }
 
 SIXTRL_INLINE void NS(tricub_construct_b_vector)(
